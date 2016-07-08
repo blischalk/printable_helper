@@ -2,7 +2,8 @@
   (:gen-class))
 
 (def printable-bytes
-  "All the printable bytes we can use in a memory address."
+  "All the printable bytes we can use in a memory address, cast to their
+  integer equivalents."
   (map int "%_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"))
 
 
