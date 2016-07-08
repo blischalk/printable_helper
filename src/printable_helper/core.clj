@@ -12,6 +12,23 @@
   [0 8 16 24])
 
 
+(defn get-bytes
+  "Takes a starting and ending 4 byte word memory address
+  and breaks out the individual bytes of each address into
+  a collection of starting bytes and ending bytes. The bytes
+  are ordered lowest to highest order."
+  [start end]
+  (let [sb1 (bit-and start 0x000000ff)
+        sb2 (bit-shift-right (bit-and start 0x0000ff00) 8)
+        sb3 (bit-shift-right (bit-and start 0x00ff0000) 16)
+        sb4 (bit-shift-right (bit-and start 0xff000000) 24)
+        eb1 (bit-and end 0x000000ff)
+        eb2 (bit-shift-right (bit-and end 0x0000ff00) 8)
+        eb3 (bit-shift-right (bit-and end 0x00ff0000) 16)
+        eb4 (bit-shift-right (bit-and end 0xff000000) 24)]
+    [[sb1 sb2 sb3 sb4] [eb1 eb2 eb3 eb4]]))
+
+
 (defn n-length-perms
   "Calculates all the permutions of items including n items."
   [items n]
@@ -61,23 +78,6 @@
             new-results (conj results match)]
         (recur [(rest start-bytes) (rest end-bytes)] new-carry new-results))
       results)))
-
-
-(defn get-bytes
-  "Takes a starting and ending 4 byte word memory address
-  and breaks out the individual bytes of each address into
-  a collection of starting bytes and ending bytes. The bytes
-  are ordered lowest to highest order."
-  [start end]
-  (let [sb1 (bit-and start 0x000000ff)
-        sb2 (bit-shift-right (bit-and start 0x0000ff00) 8)
-        sb3 (bit-shift-right (bit-and start 0x00ff0000) 16)
-        sb4 (bit-shift-right (bit-and start 0xff000000) 24)
-        eb1 (bit-and end 0x000000ff)
-        eb2 (bit-shift-right (bit-and end 0x0000ff00) 8)
-        eb3 (bit-shift-right (bit-and end 0x00ff0000) 16)
-        eb4 (bit-shift-right (bit-and end 0xff000000) 24)]
-    [[sb1 sb2 sb3 sb4] [eb1 eb2 eb3 eb4]]))
 
 
 (defn format-words
