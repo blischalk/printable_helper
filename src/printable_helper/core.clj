@@ -2,7 +2,7 @@
   (:gen-class))
 
 (def printable-bytes
-  "All the printable bytes we can use in a memory address, cast to their
+  "All the printable bytes we can use in a memory address cast to their
   integer equivalents."
   (map int "%_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"))
 
@@ -41,7 +41,7 @@
 
 (defn all-perms
   "Calculates all the permutations of items including
-  1 up to and includig n items."
+  1 up to and including n items."
   [items n]
   (if (zero? n) '()
       (lazy-cat (all-perms items (dec n))
@@ -49,22 +49,15 @@
 
 
 (def byte-combinations
-  "lazy sequency of all permutations of 1 - 4 byte
+  "lazy sequence of all permutations of 1 - 4 byte
   combinations of the allowed printable bytes."
   (all-perms printable-bytes 4))
 
 
-(defn calc-words
-  "Recursively builds reversed memory addresses as collections  of bytes e.g
-  lowest order byte first in each collection. A column of bytes, e.g the byte in
-  the same position of each collection includes the required bytes
-  that when subtracted from a starting byte will achieve the desired difference.
-
-  Each collection is a reversed word.
-  Each position within a collection will end up subtracted from the same
-  position in the next collection the same way you would do normal subtraction,
-  starting with the lowest order term of each number, subtracting, and
-  working your way towards the highest order terms.
+(defn calc-bytes-for-words
+  "
+  Builds a sequence of columns of bytes which when subtracted would
+  produce the desired byte as the difference.
   "
   [[start-bytes end-bytes] carry results]
   (let [sb (first start-bytes) eb (first end-bytes)]
@@ -80,35 +73,47 @@
       results)))
 
 
-(defn format-words
-  "Pad's words with 0's and turns the reversed collections of
-   bytes from calc-words into actual memory addresses. Proceeds to
-   format each word as a 4 byte string for printing."
+(defn build-word
+  "Builds a word out of a collection of bytes, starting from the lowest
+  order byte working toward the highest, shifting by the appropriate
+  offsets"
+  [itm]
+  (apply bit-or
+         (map-indexed
+          (fn [idx i]
+            (bit-shift-left i (get byte-offsets idx)))
+          itm)))
+
+
+(defn columns-to-bytes-for-words
+  "Takes a collection of byte columns and converts
+  them into sequences of bytes, lowest order first
+  ready to be combined into a memory address."
   [words]
-  (map #(format "0x%08x" %)
-       (remove zero?
-               (reduce
-                (fn [coll itm]
-                  (conj coll (apply bit-or
-                                    (map-indexed
-                                     (fn [idx i]
-                                       (bit-shift-left
-                                        i
-                                        (get byte-offsets idx)))
-                                     itm))))
-                []
-                (for [n (range 0 4)]
-                  (map #(nth % n 0) words))))))
+  (for [n (range 0 4)] (map #(nth % n 0) words)))
+
+
+(defn build-words
+  "Takes a sequence of columns of bytes and returns a sequence
+  of memory addresses with memory addresses of zero removed."
+  [words]
+  (remove zero?
+          (reduce
+           (fn [coll itm] (conj coll (build-word itm)))
+           []
+           (columns-to-bytes-for-words words))))
 
 
 (defn print-subtractions' [[start end]]
   (println "Calculating required subtractions...")
-  (println "Starting address: " start)
-  (time (doseq [word (-> (get-bytes (read-string start) (read-string end))
-                         (calc-words 0 [])
-                         (format-words))]
-          (println word)))
-  (println "Ending address:   " end))
+  (time
+   (do
+     (println "Starting address: " start)
+     (doseq [word (-> (get-bytes (read-string start) (read-string end))
+                      (calc-bytes-for-words 0 [])
+                      build-words)]
+       (println (format "%18s 0x%08x" "-" word)))
+     (println "Ending address:   " end))))
 
 
 (defn -main
