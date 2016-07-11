@@ -59,17 +59,21 @@
   Builds a sequence of columns of bytes which when subtracted would
   produce the desired byte as the difference.
   "
-  [[start-bytes end-bytes] carry results]
+  [[start-bytes end-bytes] carry results search-bytes]
   (let [sb (first start-bytes) eb (first end-bytes)]
     (if (and sb eb)
       (let [match (first (filter #(= sb (bit-and (apply + carry eb %)
                                                  0x000000ff))
-                                 byte-combinations))
+                                 search-bytes))
             new-carry (bit-shift-right (bit-and (apply + carry eb match)
                                                 0x0000ff00)
                                        8)
-            new-results (conj results match)]
-        (recur [(rest start-bytes) (rest end-bytes)] new-carry new-results))
+            new-results (conj results match)
+            new-search-bytes (filter #(= (count %) (count match)) search-bytes)]
+        (recur [(rest start-bytes) (rest end-bytes)]
+               new-carry
+               new-results
+               new-search-bytes))
       results)))
 
 
@@ -110,7 +114,7 @@
    (do
      (println "Starting address: " start)
      (doseq [word (-> (get-bytes (read-string start) (read-string end))
-                      (calc-bytes-for-words 0 [])
+                      (calc-bytes-for-words 0 [] byte-combinations)
                       build-words)]
        (println (format "%18s 0x%08x" "-" word)))
      (println "Ending address:   " end))))
