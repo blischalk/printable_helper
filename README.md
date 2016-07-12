@@ -1,36 +1,18 @@
 # printable_helper
 
-FIXME: description
+This is a Clojure attempt at the printable_helper.c program
+from Hacking: The Art of Exploitation Second Edition.
 
-## Installation
-
-Download from http://example.com/FIXME.
-
-## Usage
-
-FIXME: explanation
-
-    $ java -jar printable_helper-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
+The printable_helper.c program takes a starting and ending
+memory address. It then determines possible subtractions
+that could occur to yield the ending memory address from
+the starting memory address using only printable ascii
+characters.
 
 ## License
 
-Copyright © 2016 FIXME
+Copyright © 2016 Brett Lischalk
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
+
