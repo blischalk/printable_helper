@@ -1,15 +1,39 @@
 (ns printable-helper.core
   (:gen-class))
 
+
+;; printable_helper.c
+;; running time for comparison
+;;
+;;start: 0x00000000
+;;
+;;     - 0x77777777
+;;     - 0x77777746
+;;     - 0x32635254
+;;-------------------
+;;end:   0xdeadbeef
+;;
+;;real    0m0.109s
+;;user    0m0.013s
+;;sys     0m0.007s
+
+;; Current Clojure Benchmark
+;;
+;; Calculating required subtractions...
+;; Starting address:  0x00000000
+;;                  - 0x5f5f5f25
+;;                  - 0x5f786772
+;;                  - 0x627a7a7a
+;; Ending address:    0xdeadbeef
+;; "Elapsed time: 65.539823 msecs"
+
+
 (def printable-bytes
   "All the printable bytes we can use in a memory address cast to their
   integer equivalents."
   (map int "%_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"))
 
-
-(def byte-offsets
-  "Byte offsets useful for shifting."
-  [0 8 16 24])
+(def bits-in-byte 8)
 
 
 (defn get-bytes
@@ -21,8 +45,8 @@
   (for [v [start end]]
     (for [byte (range 4)]
       (unsigned-bit-shift-right
-       (bit-and v (bit-shift-left 0xff (* byte 8)))
-       (* byte 8)))))
+       (bit-and v (bit-shift-left 0xff (* byte bits-in-byte)))
+       (* byte bits-in-byte)))))
 
 
 (defn n-length-perms
@@ -62,7 +86,7 @@
                                search-bytes))
           new-carry (unsigned-bit-shift-right (bit-and (apply + carry eb match)
                                               0x0000ff00)
-                                     8)
+                                     bits-in-byte)
           new-results (conj results match)
           new-search-bytes (filter #(= (count %) (count match)) search-bytes)]
       (recur [rsb reb] new-carry new-results new-search-bytes))
@@ -77,7 +101,7 @@
   (apply bit-or
          (map-indexed
           (fn [idx i]
-            (bit-shift-left i (get byte-offsets idx)))
+            (bit-shift-left i (* idx bits-in-byte)))
           itm)))
 
 
