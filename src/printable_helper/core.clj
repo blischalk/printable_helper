@@ -37,6 +37,9 @@
 (def bits-in-byte 8)
 
 
+(def bytes-in-word 4)
+
+
 (defn get-bytes
   "Takes a starting and ending 4 byte word memory address
   and breaks out the individual bytes of each address into
@@ -44,7 +47,7 @@
   are ordered lowest to highest order."
   [start end]
   (for [v [start end]]
-    (for [byte (range 4)]
+    (for [byte (range bytes-in-word)]
       (unsigned-bit-shift-right
        (bit-and v (bit-shift-left 0xff (* byte bits-in-byte)))
        (* byte bits-in-byte)))))
@@ -111,7 +114,7 @@
   them into sequences of bytes, lowest order first
   ready to be combined into a memory address."
   [words]
-  (for [n (range 0 4)] (map #(nth % n 0) words)))
+  (for [n (range bytes-in-word)] (map #(nth % n 0) words)))
 
 
 (defn build-words
