@@ -33,6 +33,7 @@
   integer equivalents."
   (map int "%_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"))
 
+
 (def bits-in-byte 8)
 
 
