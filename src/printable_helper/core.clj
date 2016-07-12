@@ -32,12 +32,12 @@
   "All the printable bytes we can use in a memory address cast to their
   integer equivalents."
   (map int "%_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"))
-
-
 (def bits-in-byte 8)
-
-
 (def bytes-in-word 4)
+(def maximum-byte-subtractions 4)
+(def lsb-mask 0x000000ff)
+(def nlsb-mask 0x0000ff00)
+(def masked-byte 0xff)
 
 
 (defn get-bytes
@@ -49,7 +49,7 @@
   (for [v [start end]]
     (for [byte (range bytes-in-word)]
       (unsigned-bit-shift-right
-       (bit-and v (bit-shift-left 0xff (* byte bits-in-byte)))
+       (bit-and v (bit-shift-left masked-byte (* byte bits-in-byte)))
        (* byte bits-in-byte)))))
 
 
@@ -73,9 +73,9 @@
 
 
 (def byte-combinations
-  "lazy sequence of all permutations of 1 - 4 byte
+  "lazy sequence of all permutations of 1 - maximum-byte-subtractions byte
   combinations of the allowed printable bytes."
-  (all-perms printable-bytes 4))
+  (all-perms printable-bytes maximum-byte-subtractions))
 
 
 (defn calc-bytes-for-words
@@ -85,11 +85,10 @@
   "
   [[[sb & rsb] [eb & reb]] carry results search-bytes]
   (if (and sb eb)
-    (let [match (first (filter #(= sb (bit-and (apply + carry eb %)
-                                               0x000000ff))
+    (let [match (first (filter #(= sb (bit-and (apply + carry eb %) lsb-mask))
                                search-bytes))
           new-carry (unsigned-bit-shift-right (bit-and (apply + carry eb match)
-                                              0x0000ff00)
+                                              nlsb-mask)
                                      bits-in-byte)
           new-results (conj results match)
           new-search-bytes (filter #(= (count %) (count match)) search-bytes)]
