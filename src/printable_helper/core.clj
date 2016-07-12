@@ -55,22 +55,18 @@
   Builds a sequence of columns of bytes which when subtracted would
   produce the desired byte as the difference.
   "
-  [[start-bytes end-bytes] carry results search-bytes]
-  (let [sb (first start-bytes) eb (first end-bytes)]
-    (if (and sb eb)
-      (let [match (first (filter #(= sb (bit-and (apply + carry eb %)
-                                                 0x000000ff))
-                                 search-bytes))
-            new-carry (bit-shift-right (bit-and (apply + carry eb match)
-                                                0x0000ff00)
-                                       8)
-            new-results (conj results match)
-            new-search-bytes (filter #(= (count %) (count match)) search-bytes)]
-        (recur [(rest start-bytes) (rest end-bytes)]
-               new-carry
-               new-results
-               new-search-bytes))
-      results)))
+  [[[sb & rsb] [eb & reb]] carry results search-bytes]
+  (if (and sb eb)
+    (let [match (first (filter #(= sb (bit-and (apply + carry eb %)
+                                               0x000000ff))
+                               search-bytes))
+          new-carry (unsigned-bit-shift-right (bit-and (apply + carry eb match)
+                                              0x0000ff00)
+                                     8)
+          new-results (conj results match)
+          new-search-bytes (filter #(= (count %) (count match)) search-bytes)]
+      (recur [rsb reb] new-carry new-results new-search-bytes))
+    results))
 
 
 (defn build-word
